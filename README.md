@@ -1,4 +1,7 @@
 # llm-jeopardy
+
+![Current Models](current.png)
+
 process.sh - Script to process jeopardy question prompt list
 
 qasheet.ods - Output spreadsheet of run data
