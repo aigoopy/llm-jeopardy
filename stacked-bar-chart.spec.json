@@ -1,0 +1,196 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "width": 500,
+  "padding": 5,
+  "height": 800,
+  "title": {"text": "LLMs vs. Double Jeopardy", "fontSize": 30 },
+  "data": [
+    {
+      "name": "pData",
+      "transform":[
+        { 
+          "type":"formula", 
+          "expr": "split(datum.model, ' ')", 
+          "as": "model"
+        },
+        { 
+          "type":"formula", 
+          "expr": "' (' + datum.modeltotal + ')'", 
+          "as": "fmtmodeltotal"
+        },
+        { 
+          "type":"formula", 
+          "expr": " datum.percent + '%'", 
+          "as": "fmtpercent"
+        },
+        { 
+          "type":"formula", 
+          "expr": "'as of ' + datum.maxairdate ", 
+          "as": "fmtmaxairdate"
+        },
+        { 
+          "type":"formula", 
+          "expr":"'model size: ' + datum.msize + ' bytes'", 
+          "as": "fmtmsize"
+        },
+        { 
+          "type":"formula", 
+          "expr":"'avg inference time: ' + datum.elapsed + ' seconds'", 
+          "as": "fmtelapsed"
+        }
+      ]
+    }
+  ],
+  "scales": [
+    {
+      "name": "y",
+      "type": "band",
+      "range": "height",
+      "domain": {"data": "pData", "field": "model"},
+      "padding": 0.2
+    },
+    {
+      "name": "x",
+      "type": "linear",
+      "range": "width",
+      "domain": {"data": "pData", "field": "percent"},
+      "nice": true,
+      "round": true,
+      "zero": true
+    }
+  ],
+  "axes": [
+    {
+      "orient": "bottom", 
+      "scale": "x", 
+      "title": "Percentage of correct answers (# Asked)",
+      "titleFontSize": 18
+    },
+    {
+      "orient": "left", 
+      "scale": "y",
+      "title": "GGML Model", 
+      "labelFontSize": 12,
+      "labelFontWeight": "bold", 
+      "titleFontSize": 18
+    }
+  ],
+  "marks": [
+    {
+      "name": "bars",
+      "from": {"data": "pData"},
+      "type": "rect",     
+      "encode": {
+        "enter": {
+            "y": {"scale": "y", "field": "model"},
+            "height": {"scale": "y", "band": 1},
+            "x": {"scale": "x", "field": "percent"},
+            "x2": {"scale": "x", "value": 0},
+            "fill": {"data": "pData", "field": "c"},
+            "text": { "field": "model" },
+            "fontSize": {"value": 22 },
+            "stroke": {"value": "#444"}
+        }
+      }
+    },
+    {  
+      "type": "text",
+      "from": {"data": "pData"},
+      "encode": { 
+        "enter": { 
+          "y": {"scale": "y", "field": "model", "band": 0.5},
+          "dy": {"signal": "(datum.y2 - datum.y)/2"},
+          "dx": {"signal": "((datum.x2 - datum.x)/2)"},
+          "x": {
+            "scale": "x", 
+            "value": 0,
+            "offset": 20
+          },
+          "fill": [
+            {"data": "pData", "field": "tc"}
+          ],
+          "fontWeight": {"value": "bold"},
+          "fontSize": {"value": 22 },
+          "align": {"value": "left"},
+          "baseline": {"value": "middle"},
+          "text": { "field": "fmtpercent" }
+        }     
+      }
+    },
+    {  
+      "type": "text",
+      "from": {"data": "pData"},
+      "encode": { 
+        "enter": { 
+          "y": {"scale": "y", "field": "model", "band": 0.5},
+          "dy": {"signal": "(datum.y2 - datum.y)/2"},
+          "x": {
+            "scale": "x", 
+            "value": 0,
+            "offset": 120
+          },
+          "fill": [
+            {"data": "pData", "field": "tc"}
+          ],
+          "fontWeight": {"value": "bold"},
+          "fontSize": {"value": 16 },
+          "align": {"value": "left"},
+          "baseline": {"value": "middle"},
+          "text": { "field": "fmtmodeltotal" }
+        }     
+      }
+    },
+    {  
+      "type": "text",
+      "from": {"data": "pData"},
+      "encode": { 
+        "enter": { 
+          "y": {"scale": "y", "field": "model", "band": 1.0},
+          "dy": {"signal": "(datum.y2 - datum.y)/2"},
+          "x": {"scale": "x", "value": 0, "offset": 5 },
+          "fill": [
+            {"data": "pData", "field": "tc"}
+          ],
+          "fontWeight": {"value": "bold"},
+          "fontSize": {"value": 10 },
+          "align": {"value": "left"},
+          "baseline": {"value": "bottom"},
+          "text": { "field": "fmtmsize" }
+        }     
+      }
+    },
+    {  
+      "type": "text",
+      "from": {"data": "pData"},
+      "encode": { 
+        "enter": { 
+          "y": {"scale": "y", "field": "model", "band": 0.09},
+          "dy": {"signal": "(datum.y2 - datum.y)/2"},
+          "x": {"scale": "x", "value": 0, "offset": 5 },
+          "fill": [
+            {"data": "pData", "field": "tc"}
+          ],
+          "fontWeight": {"value": "bold"},
+          "fontSize": {"value": 10 },
+          "align": {"value": "left"},
+          "baseline": {"value": "bottom"},
+          "text": { "field": "fmtelapsed" }
+        }     
+      }
+    },
+    {  
+      "type": "text",
+      "from": {"data": "pData"},
+      "encode": { 
+        "enter": { 
+          "y": { "value": 20 },
+          "x": {"value": 165 },
+          "fontWeight": {"value": "bold"},
+          "fontSize": {"value": 18 },
+          "align": {"value": "center"},
+          "text": { "field": "fmtmaxairdate" }
+        }     
+      }
+    }
+  ]
+}
