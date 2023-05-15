@@ -3,7 +3,11 @@
   "width": 500,
   "padding": 5,
   "height": 800,
-  "title": {"text": "LLMs vs. Double Jeopardy", "fontSize": 30 },
+  "title": {  
+    "fontSize": 30, 
+    "text": "LLMs vs. Double Jeopardy", 
+    "subtitle": "as of airdate",
+    "subtitleFontSize": 9 },
   "data": [
     {
       "name": "pData",
@@ -22,11 +26,6 @@
           "type":"formula", 
           "expr": " datum.percent + '%'", 
           "as": "fmtpercent"
-        },
-        { 
-          "type":"formula", 
-          "expr": "'as of ' + datum.maxairdate ", 
-          "as": "fmtmaxairdate"
         },
         { 
           "type":"formula", 
@@ -164,7 +163,7 @@
       "from": {"data": "pData"},
       "encode": { 
         "enter": { 
-          "y": {"scale": "y", "field": "model", "band": 0.1},
+          "y": { "scale": "y", "field": "model", "offset": 13},
           "dy": {"signal": "(datum.y2 - datum.y)/2"},
           "x": {"scale": "x", "value": 0, "offset": 5 },
           "fill": [
@@ -183,12 +182,11 @@
       "from": {"data": "pData"},
       "encode": { 
         "enter": { 
-          "y": { "value": 20 },
-          "x": {"value": 165 },
-          "fontWeight": {"value": "bold"},
-          "fontSize": {"value": 18 },
+          "y": { "value": 0 },
+          "x": {"value": 185 },
+          "fontSize": {"value": 14 },
           "align": {"value": "center"},
-          "text": { "field": "fmtmaxairdate" }
+          "text": { "field": "maxairdate" }
         }     
       }
     }

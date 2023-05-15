@@ -23,7 +23,7 @@ if (options.createchart) {
     sql += 'select ';
     sql += 'model.name as model_name, model.color as model_color, model.textcolor as model_textcolor, model.size as model_size, model.startup as model_startup, ';
     sql += 'SUM(model_prompt.correct) as model_sum, ';
-    sql += 'MAX(prompt.airdate) as prompt_maxdate, ';
+    sql += 'MAX(DATE(prompt.airdate)) as prompt_maxdate, ';
     sql += 'AVG(model_prompt.correct) as model_avg, ';
     sql += 'AVG(model_prompt.elapsed) as elapsed_avg, ';
     sql += 'AVG(model_prompt.correct) * 100 as model_pct, ';
@@ -31,15 +31,18 @@ if (options.createchart) {
     sql += 'from model ';
     sql += 'inner join model_prompt on (model.rowid = model_prompt.model_id) ';
     sql += 'inner join prompt on (prompt.rowid = model_prompt.prompt_id) ';
+    sql += 'where graphdisplay = 1 ';
     sql += 'group by model.name, model.color, model.textcolor, model.size, model.startup ';
     sql += 'order by model_avg DESC, elapsed_avg - model_startup ';
     var pData = [];
-
     const rows = db.prepare(sql).all();
+    const datesArray = rows.map(dt=>new Date(dt.prompt_maxdate));
+    var maxdate = new Date(Math.max(...datesArray)).toISOString().split('T')[0];
+
     rows.forEach(function (row) {
         pData.push({
             "model": row.model_name,
-            "maxairdate": row.prompt_maxdate,
+            "maxairdate": maxdate,
             "percent": row.model_pct.toFixed(2),
             "elapsed": ((row.elapsed_avg - row.model_startup) / 1000).toFixed(3),
             "modeltotal": row.model_total,
@@ -47,7 +50,8 @@ if (options.createchart) {
             "c": '#' + row.model_color,
             "tc": '#' + row.model_textcolor
         })
-    });
+    });   
+
     //Create a new view instance for a given Vega JSON spec
     var view = new vega
         .View(vega.parse(stackedBarChartSpec))
@@ -75,9 +79,10 @@ if (options.addprompt) {
     const airdate = prompt("Airdate (YYYY-MM-DD): ");
     const modelprompt = prompt("Model prompt: ");
     const answer = prompt("Answer: ");
-    const category = prompt("Category (1-6): ");
-    let stmt = db.prepare('INSERT INTO prompt (airdate, category, amt, query, answer) VALUES (?, ?, ?, ?, ?)');
-    stmt.run(airdate, category, 2000, modelprompt, answer);
+    const category = prompt("Category Name: ");
+    const level = prompt("Level (1-6): ");
+    let stmt = db.prepare('INSERT INTO prompt (airdate, category, level, amt, query, answer) VALUES (?, ?, ?, ?, ?, ?)');
+    stmt.run(airdate, category, level, 2000, modelprompt, answer);
 }
 
 //Run inference on promptrows and save result
