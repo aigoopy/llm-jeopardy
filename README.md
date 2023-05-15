@@ -2,15 +2,15 @@
 
 ![Double](dbljeopardy.png)
 
-Install and run:\
+Install and run:  
 
-git clone https://github.com/aigoopy/llm-jeopardy.git\
+git clone https://github.com/aigoopy/llm-jeopardy.git  
 
-npm install\
+npm install  
 
-node . --help\
+node . --help  
 
-Thanks to Reddit user: [AI-Pon3](https://www.reddit.com/user/AI-Pon3) for ChatGPT data and scoring. \
+Thanks to Reddit user: [AI-Pon3](https://www.reddit.com/user/AI-Pon3) for ChatGPT data and scoring.  
 
 ![Current Models](current.png)
 
