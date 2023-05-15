@@ -30,12 +30,12 @@
         },
         { 
           "type":"formula", 
-          "expr":"'model size: ' + datum.msize + ' bytes'", 
+          "expr":"parseInt(datum.msize) > 0 ? 'model size: ' + datum.msize + '' : ''", 
           "as": "fmtmsize"
         },
         { 
           "type":"formula", 
-          "expr":"'avg inference time: ' + datum.elapsed + ' seconds'", 
+          "expr":"datum.elapsed!=='1.000' ? 'avg time: ' + datum.elapsed + ' seconds' : ''", 
           "as": "fmtelapsed"
         }
       ]
@@ -152,7 +152,7 @@
             {"data": "pData", "field": "tc"}
           ],
           "fontWeight": {"value": "bold"},
-          "fontSize": {"value": 10 },
+          "fontSize": {"value": 9 },
           "align": {"value": "left"},
           "baseline": {"value": "bottom"},
           "text": { "field": "fmtmsize" }
@@ -164,7 +164,7 @@
       "from": {"data": "pData"},
       "encode": { 
         "enter": { 
-          "y": {"scale": "y", "field": "model", "band": 0.09},
+          "y": {"scale": "y", "field": "model", "band": 0.1},
           "dy": {"signal": "(datum.y2 - datum.y)/2"},
           "x": {"scale": "x", "value": 0, "offset": 5 },
           "fill": [
