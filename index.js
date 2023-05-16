@@ -1,4 +1,5 @@
 require('dotenv').config();
+const cliProgress = require('cli-progress');
 const yargs = require("yargs");
 const db = require('better-sqlite3')('./dbljeopardy.sqlite');
 const prompt = require("prompt-sync")({ sigint: true });
@@ -14,6 +15,7 @@ const options = yargs
     .option("a", { alias: "addprompt", describe: "add a prompt to db and process", type: "boolean", demandOption: false })
     .option("c", { alias: "createchart", describe: "create a chart from the data", type: "boolean", demandOption: false })
     .option("r", { alias: "run", describe: "run model inference", type: "boolean", demandOption: false })
+    .option("g", { alias: "grade", describe: "grade model answers", type: "boolean", demandOption: false })
     .argv;
 
 //Create chart
@@ -36,7 +38,7 @@ if (options.createchart) {
     sql += 'order by model_avg DESC, elapsed_avg - model_startup ';
     var pData = [];
     const rows = db.prepare(sql).all();
-    const datesArray = rows.map(dt=>new Date(dt.prompt_maxdate));
+    const datesArray = rows.map(dt => new Date(dt.prompt_maxdate));
     var maxdate = new Date(Math.max(...datesArray)).toISOString().split('T')[0];
 
     rows.forEach(function (row) {
@@ -50,7 +52,7 @@ if (options.createchart) {
             "c": '#' + row.model_color,
             "tc": '#' + row.model_textcolor
         })
-    });   
+    });
 
     //Create a new view instance for a given Vega JSON spec
     var view = new vega
@@ -88,13 +90,16 @@ if (options.addprompt) {
 //Run inference on promptrows and save result
 if (options.run) {
     let promptrows = getPromptRows();
+    const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+    bar1.start(promptrows.length, 0);
+
     promptrows.forEach(function (prow) {
+        bar1.increment();
         var llamaargs = ' ' + prow.args;
-        if (prow.runalpaca == 1)
-            llamaargs += " -ins ";
-        console.log("Running: " + prow.filepath + llamaargs);
+        console.log();;
         var startTime = new Date();
         let exePath = llamapath + " -m " + process.env.DEVPATH + prow.filepath + llamaargs + " -p \"" + prow.query + "\"";
+        console.log(exePath);
         let answer = execSync(exePath, (error, stdout, stderr) => {
             if (error) {
                 console.log(`error: ${error.message}`);
@@ -106,24 +111,41 @@ if (options.run) {
             }
         });
         var elapsed = new Date() - startTime;
-        console.clear();
-        console.log("Ran: " + prow.filepath + llamaargs);
-        console.log(prow.query);
-        console.log("Airdate: " + prow.airdate);
         answer = answer.toString();
         answer = answer.replace(prow.query, '');
-        answer = answer.replace('\n', '');
-        answer = answer.replace('\"', '');
-        console.log("Model answer:");
+        console.log('-----------------------------------------');
+        console.log(prow.query);
+        console.log('-----------------------------------------');
         console.log(answer);
+        console.log('-----------------------------------------');
+        let stmt = db.prepare("INSERT INTO model_prompt (model_id, prompt_id, answer, elapsed) VALUES (?, ?, ?, ?)");
+        stmt.run(prow.modelid, prow.promptid, answer, elapsed);
+    })
+
+    console.clear();
+    bar1.stop();
+    process.stdout.write('\u0007');
+}
+
+//Grade ungraded model answers
+if (options.grade) {
+    let ungradedrows = getUngradedRows();
+    ungradedrows.forEach(function (prow) {
+        console.clear();
+        console.log(prow.query);
+        console.log("Airdate: " + prow.airdate);
+        console.log("Model answer:");
+        console.log("-----------------------------");
+        console.log(prow.model_answer);
         console.log("-----------------------------");
         console.log("Correct answer:");
-        console.log(prow.answer);
+        console.log(prow.correct_answer);
         let correct = parseInt(prompt("Correct (0 or 1): "));
         let hallucinate = parseInt(prompt("Hallucinate (0 or 1): "));
-        let stmt = db.prepare("INSERT INTO model_prompt (model_id, prompt_id, answer, correct, elapsed, hallucinate) VALUES (?, ?, ?, ?, ?, ?)");
-        stmt.run(prow.modelid, prow.promptid, answer, correct, elapsed, hallucinate);
-    })
+        var sql = 'UPDATE model_prompt SET correct = ?, hallucinate = ? WHERE model_prompt.model_id = ? and model_prompt.prompt_id = ?';
+        let stmt = db.prepare(sql);
+        stmt.run(correct, hallucinate, prow.modelid, prow.promptid);
+    });
 }
 
 db.close();
@@ -133,8 +155,27 @@ function getPromptRows() {
     let retrows = [];
     const rows = db.prepare("select model.ROWID as modelid, prompt.ROWID as promptid from model cross join prompt where date(model.date) < date(prompt.airdate) and model.process = 1 except select model_id, prompt_id from model_prompt").all();
     rows.forEach(function (row) {
-        const prow = db.prepare("select model.rowid as modelid, prompt.rowid as promptid, model.filepath, model.runalpaca, model.args, prompt.query, prompt.answer, prompt.airdate from model,prompt where model.rowid = " + row.modelid + " and prompt.rowid = " + row.promptid).get();
+        const prow = db.prepare("select model.rowid as modelid, prompt.rowid as promptid, model.filepath, model.args, prompt.query, prompt.answer, prompt.airdate from model,prompt where model.rowid = " + row.modelid + " and prompt.rowid = " + row.promptid).get();
         retrows.push(prow);
     });
     return retrows;
 };
+
+//Get list of prompts that do not have prompt answers
+function getUngradedRows() {
+    let retrows = [];
+    const rows = db.prepare("select model.ROWID as modelid, prompt.ROWID as promptid from model cross join prompt where date(model.date) < date(prompt.airdate) and model.process = 1 except select model_id, prompt_id from model_prompt where correct IS NOT NULL").all();
+    rows.forEach(function (row) {
+        var sql = '';
+        sql += 'select model.rowid as modelid, prompt.rowid as promptid, model.filepath, model.args, ';
+        sql += 'prompt.query, prompt.answer as correct_answer, prompt.airdate, model_prompt.answer as model_answer ',
+            sql += 'from model ';
+        sql += 'inner join model_prompt on (model.rowid = model_prompt.model_id) ';
+        sql += 'inner join prompt on (prompt.rowid = model_prompt.prompt_id) ';
+        sql += 'where model_prompt.model_id = ' + row.modelid + ' and model_prompt.prompt_id = ' + row.promptid;
+        const prow = db.prepare(sql).get();
+        retrows.push(prow);
+    });
+    return retrows;
+};
+
