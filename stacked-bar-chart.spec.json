@@ -19,7 +19,7 @@
         },
         { 
           "type":"formula", 
-          "expr": "' (' + datum.modeltotal + ')'", 
+          "expr": "' (' + datum.modelcorrect + '/' +  datum.modeltotal + ')'", 
           "as": "fmtmodeltotal"
         },
         { 
@@ -62,7 +62,8 @@
     {
       "orient": "bottom", 
       "scale": "x", 
-      "title": "Percentage of correct answers (# Asked)",
+      "title": "% of Correct Answers (Correct/Total)",
+      "titleAlign":"right",
       "titleFontSize": 18
     },
     {
@@ -103,7 +104,7 @@
           "x": {
             "scale": "x", 
             "value": 0,
-            "offset": 20
+            "offset": 10
           },
           "fill": [
             {"data": "pData", "field": "tc"}
@@ -126,7 +127,7 @@
           "x": {
             "scale": "x", 
             "value": 0,
-            "offset": 120
+            "offset": 105
           },
           "fill": [
             {"data": "pData", "field": "tc"}
@@ -183,7 +184,7 @@
       "encode": { 
         "enter": { 
           "y": { "value": 0 },
-          "x": {"value": 185 },
+          "x": {"value": 125 },
           "fontSize": {"value": 14 },
           "align": {"value": "center"},
           "text": { "field": "maxairdate" }

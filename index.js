@@ -45,7 +45,8 @@ if (options.createchart) {
         pData.push({
             "model": row.model_name,
             "maxairdate": maxdate,
-            "percent": row.model_pct.toFixed(2),
+            "modelcorrect": row.model_sum,
+            "percent": row.model_pct ? row.model_pct.toFixed(2) : 0,
             "elapsed": ((row.elapsed_avg - row.model_startup) / 1000).toFixed(3),
             "modeltotal": row.model_total,
             "msize": parseFloat(row.model_size).toLocaleString('en'),
@@ -95,10 +96,15 @@ if (options.run) {
 
     promptrows.forEach(function (prow) {
         bar1.increment();
+        var query = prow.query;
+        if (prow.template)
+        {
+            query = prow.template.replace("{{{prompt}}}", query);
+        }
         var llamaargs = ' ' + prow.args;
         console.log();;
         var startTime = new Date();
-        let exePath = llamapath + " -m " + process.env.DEVPATH + prow.filepath + llamaargs + " -p \"" + prow.query + "\"";
+        let exePath = llamapath + " -m " + process.env.DEVPATH + prow.filepath + llamaargs + " -p \"" + query + "\"";
         console.log(exePath);
         let answer = execSync(exePath, (error, stdout, stderr) => {
             if (error) {
@@ -112,7 +118,15 @@ if (options.run) {
         });
         var elapsed = new Date() - startTime;
         answer = answer.toString();
+        if (prow.template)
+        {
+            var templatetokens = prow.template.split(' ');
+            templatetokens.forEach(function(token) {               
+                answer = answer.replace(token.trim(), '');
+            })
+        }
         answer = answer.replace(prow.query, '');
+        answer = answer.trim();
         console.log('-----------------------------------------');
         console.log(prow.query);
         console.log('-----------------------------------------');
@@ -124,7 +138,6 @@ if (options.run) {
 
     console.clear();
     bar1.stop();
-    process.stdout.write('\u0007');
 }
 
 //Grade ungraded model answers
@@ -155,7 +168,7 @@ function getPromptRows() {
     let retrows = [];
     const rows = db.prepare("select model.ROWID as modelid, prompt.ROWID as promptid from model cross join prompt where date(model.date) < date(prompt.airdate) and model.process = 1 except select model_id, prompt_id from model_prompt").all();
     rows.forEach(function (row) {
-        const prow = db.prepare("select model.rowid as modelid, prompt.rowid as promptid, model.filepath, model.args, prompt.query, prompt.answer, prompt.airdate from model,prompt where model.rowid = " + row.modelid + " and prompt.rowid = " + row.promptid).get();
+        const prow = db.prepare("select model.rowid as modelid, prompt.rowid as promptid, model.filepath, model.args, model.template, prompt.query, prompt.answer, prompt.airdate from model,prompt where model.rowid = " + row.modelid + " and prompt.rowid = " + row.promptid).get();
         retrows.push(prow);
     });
     return retrows;
