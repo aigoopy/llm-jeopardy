@@ -23,7 +23,7 @@ if (options.createchart) {
     //Get current data and populate chart spec
     var sql = '';
     sql += 'select ';
-    sql += 'model.name as model_name, model.color as model_color, model.textcolor as model_textcolor, model.size as model_size, model.startup as model_startup, ';
+    sql += 'model.name as model_name, model.color as model_color, model.textcolor as model_textcolor, model.size as model_size, model.modeldate as model_date, model.startup as model_startup, ';
     sql += 'SUM(model_prompt.correct) as model_sum, ';
     sql += 'MAX(DATE(prompt.airdate)) as prompt_maxdate, ';
     sql += 'AVG(model_prompt.correct) as model_avg, ';
@@ -31,10 +31,10 @@ if (options.createchart) {
     sql += 'AVG(model_prompt.correct) * 100 as model_pct, ';
     sql += 'COUNT(model_prompt.correct) as model_total ';
     sql += 'from model ';
-    sql += 'inner join model_prompt on (model.rowid = model_prompt.model_id) ';
-    sql += 'inner join prompt on (prompt.rowid = model_prompt.prompt_id) ';
+    sql += 'inner join model_prompt on (model.model_id = model_prompt.model_id) ';
+    sql += 'inner join prompt on (prompt.prompt_id = model_prompt.prompt_id) ';
     sql += 'where graphdisplay = 1 ';
-    sql += 'group by model.name, model.color, model.textcolor, model.size, model.startup ';
+    sql += 'group by model.name, model.color, model.textcolor, model.size, model.startup, model.modeldate ';
     sql += 'order by model_avg DESC, elapsed_avg - model_startup ';
     var pData = [];
     const rows = db.prepare(sql).all();
@@ -50,6 +50,7 @@ if (options.createchart) {
             "elapsed": ((row.elapsed_avg - row.model_startup) / 1000).toFixed(3),
             "modeltotal": row.model_total,
             "msize": parseFloat(row.model_size).toLocaleString('en'),
+            "mdate": row.model_date,
             "c": '#' + row.model_color,
             "tc": '#' + row.model_textcolor
         })
@@ -154,10 +155,9 @@ if (options.grade) {
         console.log("Correct answer:");
         console.log(prow.correct_answer);
         let correct = parseInt(prompt("Correct (0 or 1): "));
-        let hallucinate = parseInt(prompt("Hallucinate (0 or 1): "));
-        var sql = 'UPDATE model_prompt SET correct = ?, hallucinate = ? WHERE model_prompt.model_id = ? and model_prompt.prompt_id = ?';
+        var sql = 'UPDATE model_prompt SET correct = ? WHERE model_prompt.model_id = ? and model_prompt.prompt_id = ?';
         let stmt = db.prepare(sql);
-        stmt.run(correct, hallucinate, prow.modelid, prow.promptid);
+        stmt.run(correct, prow.modelid, prow.promptid);
     });
 }
 
@@ -166,9 +166,9 @@ db.close();
 //Get list of prompts that do not have prompt answers
 function getPromptRows() {
     let retrows = [];
-    const rows = db.prepare("select model.ROWID as modelid, prompt.ROWID as promptid from model cross join prompt where date(model.date) < date(prompt.airdate) and model.process = 1 except select model_id, prompt_id from model_prompt").all();
+    const rows = db.prepare("select model.model_id as modelid, prompt.prompt_id as promptid from model cross join prompt where date(model.date) < date(prompt.airdate) and model.process = 1 except select model_id, prompt_id from model_prompt").all();
     rows.forEach(function (row) {
-        const prow = db.prepare("select model.rowid as modelid, prompt.rowid as promptid, model.filepath, model.args, model.template, prompt.query, prompt.answer, prompt.airdate from model,prompt where model.rowid = " + row.modelid + " and prompt.rowid = " + row.promptid).get();
+        const prow = db.prepare("select model.model_id as modelid, prompt.prompt_id as promptid, model.filepath, model.args, model.template, prompt.query, prompt.answer, prompt.airdate from model,prompt where model.model_id = " + row.modelid + " and prompt.prompt_id = " + row.promptid).get();
         retrows.push(prow);
     });
     return retrows;
@@ -177,14 +177,14 @@ function getPromptRows() {
 //Get list of prompts that do not have prompt answers
 function getUngradedRows() {
     let retrows = [];
-    const rows = db.prepare("select model.ROWID as modelid, prompt.ROWID as promptid from model cross join prompt where date(model.date) < date(prompt.airdate) and model.process = 1 except select model_id, prompt_id from model_prompt where correct IS NOT NULL").all();
+    const rows = db.prepare("select model.model_id as modelid, prompt.prompt_id as promptid from model cross join prompt where date(model.date) < date(prompt.airdate) and model.process = 1 except select model_id, prompt_id from model_prompt where correct IS NOT NULL").all();
     rows.forEach(function (row) {
         var sql = '';
-        sql += 'select model.rowid as modelid, prompt.rowid as promptid, model.filepath, model.args, ';
+        sql += 'select model.model_id as modelid, prompt.prompt_id as promptid, model.filepath, model.args, ';
         sql += 'prompt.query, prompt.answer as correct_answer, prompt.airdate, model_prompt.answer as model_answer ',
             sql += 'from model ';
-        sql += 'inner join model_prompt on (model.rowid = model_prompt.model_id) ';
-        sql += 'inner join prompt on (prompt.rowid = model_prompt.prompt_id) ';
+        sql += 'inner join model_prompt on (model.model_id = model_prompt.model_id) ';
+        sql += 'inner join prompt on (prompt.prompt_id = model_prompt.prompt_id) ';
         sql += 'where model_prompt.model_id = ' + row.modelid + ' and model_prompt.prompt_id = ' + row.promptid;
         const prow = db.prepare(sql).get();
         retrows.push(prow);

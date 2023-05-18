@@ -29,12 +29,12 @@
         },
         { 
           "type":"formula", 
-          "expr":"parseInt(datum.msize) > 0 ? 'model size: ' + datum.msize + '' : ''", 
+          "expr":"parseInt(datum.msize) > 0 ? 'size (date): ' + datum.msize + ' (' + datum.mdate + ')' : ''", 
           "as": "fmtmsize"
         },
         { 
           "type":"formula", 
-          "expr":"datum.elapsed!=='1.000' ? 'avg time: ' + datum.elapsed + ' seconds' : ''", 
+          "expr":"datum.elapsed!=='1.000' ? 'avg time (cpu): ' + datum.elapsed + ' seconds' : ''", 
           "as": "fmtelapsed"
         }
       ]
@@ -158,7 +158,7 @@
           "text": { "field": "fmtmsize" }
         }     
       }
-    },
+    }, 
     {  
       "type": "text",
       "from": {"data": "pData"},
