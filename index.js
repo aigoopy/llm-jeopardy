@@ -98,8 +98,7 @@ if (options.run) {
     promptrows.forEach(function (prow) {
         bar1.increment();
         var query = prow.query;
-        if (prow.template)
-        {
+        if (prow.template) {
             query = prow.template.replace("{{{prompt}}}", query);
         }
         var llamaargs = ' ' + prow.args;
@@ -119,10 +118,9 @@ if (options.run) {
         });
         var elapsed = new Date() - startTime;
         answer = answer.toString();
-        if (prow.template)
-        {
+        if (prow.template) {
             var templatetokens = prow.template.split(' ');
-            templatetokens.forEach(function(token) {               
+            templatetokens.forEach(function (token) {
                 answer = answer.replace(token.trim(), '');
             })
         }
@@ -143,6 +141,12 @@ if (options.run) {
 
 //Grade ungraded model answers
 if (options.grade) {
+    autoGrade();
+}
+
+db.close();
+
+function manualGrade() {
     let ungradedrows = getUngradedRows();
     ungradedrows.forEach(function (prow) {
         console.clear();
@@ -161,7 +165,39 @@ if (options.grade) {
     });
 }
 
-db.close();
+function autoGrade() {
+    console.log("Loading rows for grading...");
+    let ungradedrows = getUngradedRows();
+    console.log("Done!");
+    console.log("Grading...");
+    const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+    bar1.start(ungradedrows.length, 0);
+
+    ungradedrows.forEach(function (prow) {
+        bar1.increment();
+
+        //splitup multiple correct answers
+        var correct_answers = prow.correct_answer.split(";");
+
+        var model_answer = prow.model_answer.toString().replace(/[^\w\s\']|_/g, "").replace(/\s+/g, " ").replace("\'", "").replace("\"", "").toLowerCase();
+
+        var correct = 0;
+        for (var i = 0; i < correct_answers.length; i++) {
+            correct_answers[i] = correct_answers[i].toString().replace(/[^\w\s\']|_/g, "").replace(/\s+/g, " ").replace("\'", "").replace("\"", "").toLowerCase();
+            if (model_answer.indexOf(correct_answers[i]) != -1) {
+                correct = 1;
+            }
+       }
+
+        var sql = 'UPDATE model_prompt SET correct = ? WHERE model_prompt.model_id = ? and model_prompt.prompt_id = ?';
+        let stmt = db.prepare(sql);
+        stmt.run(correct, prow.modelid, prow.promptid);
+    });
+
+    bar1.stop();
+    console.log("Done!");
+}
+
 
 //Get list of prompts that do not have prompt answers
 function getPromptRows() {

@@ -29,8 +29,13 @@
         },
         { 
           "type":"formula", 
-          "expr":"parseInt(datum.msize) > 0 ? 'size (date): ' + datum.msize + ' (' + datum.mdate + ')' : ''", 
-          "as": "fmtmsize"
+          "expr":"parseInt(datum.msize) > 0 ? 'size: ' + datum.msize + '' : ''", 
+          "as": "fmtsize"
+        },
+        { 
+          "type":"formula", 
+          "expr":"'date: ' + datum.mdate + ''", 
+          "as": "fmtdate"
         },
         { 
           "type":"formula", 
@@ -145,6 +150,25 @@
       "from": {"data": "pData"},
       "encode": { 
         "enter": { 
+          "y": {"scale": "y", "field":"model", "offset": 54, "value": 0 },
+          "dy": {"signal": "(datum.y2 - datum.y)/2"},
+          "x": {"scale": "x", "value": 0, "offset": 5 },
+          "fill": [
+            {"data": "pData", "field": "tc"}
+          ],
+          "fontWeight": {"value": "bold"},
+          "fontSize": {"value": 9 },
+          "align": {"value": "left"},
+          "baseline": {"value": "bottom"},
+          "text": { "field": "fmtsize" }
+        }     
+      }
+    }, 
+    {  
+      "type": "text",
+      "from": {"data": "pData"},
+      "encode": { 
+        "enter": { 
           "y": {"scale": "y", "field": "model", "band": 1.0},
           "dy": {"signal": "(datum.y2 - datum.y)/2"},
           "x": {"scale": "x", "value": 0, "offset": 5 },
@@ -155,7 +179,7 @@
           "fontSize": {"value": 9 },
           "align": {"value": "left"},
           "baseline": {"value": "bottom"},
-          "text": { "field": "fmtmsize" }
+          "text": { "field": "fmtdate" }
         }     
       }
     }, 
