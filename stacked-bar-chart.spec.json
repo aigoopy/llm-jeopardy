@@ -2,7 +2,7 @@
   "$schema": "https://vega.github.io/schema/vega/v5.json",
   "width": 500,
   "padding": 5,
-  "height": 1200,
+  "height": 1400,
   "title": {  
     "fontSize": 30, 
     "text": "LLMs vs. Double Jeopardy", 
@@ -150,7 +150,7 @@
       "from": {"data": "pData"},
       "encode": { 
         "enter": { 
-          "y": {"scale": "y", "field":"model", "offset": 52, "value": 0 },
+          "y": {"scale": "y", "field":"model", "offset": 48, "value": 0 },
           "dy": {"signal": "(datum.y2 - datum.y)/2"},
           "x": {"scale": "x", "value": 0, "offset": 5 },
           "fill": [

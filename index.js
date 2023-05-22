@@ -24,7 +24,7 @@ if (options.createchart) {
     //Get current data and populate chart spec
     var sql = '';
     sql += 'select ';
-    sql += 'model.name as model_name, model.color as model_color, model.textcolor as model_textcolor, model.size as model_size, model.modeldate as model_date, model.startup as model_startup, ';
+    sql += 'model.name as model_name, model.color as model_color, model.textcolor as model_textcolor, model.size as model_size, model.modeldate as model_date, ';
     sql += 'SUM(model_prompt.correct) as model_sum, ';
     sql += 'MAX(DATE(prompt.airdate)) as prompt_maxdate, ';
     sql += 'AVG(model_prompt.correct) as model_avg, ';
@@ -35,8 +35,8 @@ if (options.createchart) {
     sql += 'inner join model_prompt on (model.model_id = model_prompt.model_id) ';
     sql += 'inner join prompt on (prompt.prompt_id = model_prompt.prompt_id) ';
     sql += 'where graphdisplay = 1 ';
-    sql += 'group by model.name, model.color, model.textcolor, model.size, model.startup, model.modeldate ';
-    sql += 'order by model_avg DESC, elapsed_avg - model_startup ';
+    sql += 'group by model.name, model.color, model.textcolor, model.size, model.modeldate ';
+    sql += 'order by model_avg DESC, elapsed_avg ';
     var pData = [];
     const rows = db.prepare(sql).all();
     const datesArray = rows.map(dt => new Date(dt.prompt_maxdate));
@@ -48,7 +48,7 @@ if (options.createchart) {
             "maxairdate": maxdate,
             "modelcorrect": row.model_sum,
             "percent": row.model_pct ? row.model_pct.toFixed(2) : 0,
-            "elapsed": ((row.elapsed_avg - row.model_startup) / 1000).toFixed(3),
+            "elapsed": ((row.elapsed_avg) / 1000).toFixed(3),
             "modeltotal": row.model_total,
             "msize": parseFloat(row.model_size).toLocaleString('en'),
             "mdate": row.model_date,
