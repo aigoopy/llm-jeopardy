@@ -6,6 +6,7 @@ const prompt = require("prompt-sync")({ sigint: true });
 const { execSync } = require("child_process");
 var vega = require('vega')
 var sharp = require('sharp');
+var path = require('path');
 var stackedBarChartSpec = require('./stacked-bar-chart.spec.json');
 
 const llamapath = process.env.DEVPATH + "/repos/llama.cpp/main";
@@ -70,7 +71,17 @@ if (options.createchart) {
             await sharp(Buffer.from(svg))
                 .flatten({ background: { r: 255, g: 255, b: 255, alpha: 0 } })
                 .toFormat('png')
-                .toFile('dbljeopardy.png')
+                .toFile('dbljeopardy.png');
+
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            let mm = today.getMonth() + 1;
+            let dd = today.getDate();
+
+            await sharp(Buffer.from(svg))
+                .flatten({ background: { r: 255, g: 255, b: 255, alpha: 0 } })
+                .toFormat('png')
+                .toFile('archive/dbljeopardy_' + yyyy.toString() + '_' + mm.toString() + '_' + dd.toString() + '.png');
         })
         .catch(function (err) {
             console.log("Error writing PNG to file:")
@@ -91,52 +102,77 @@ if (options.addprompt) {
 
 //Run inference on promptrows and save result
 if (options.run) {
-    let promptrows = getPromptRows();
-    const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
-    bar1.start(promptrows.length, 0);
 
-    promptrows.forEach(function (prow) {
-        bar1.increment();
-        var query = prow.query;
-        if (prow.template) {
-            query = prow.template.replace("{{{prompt}}}", query);
-        }
-        var llamaargs = ' ' + prow.args;
-        console.log();;
-        var startTime = new Date();
-        let exePath = llamapath + " -m " + process.env.DEVPATH + prow.filepath + llamaargs + " -p \"" + query + "\"";
-        console.log(exePath);
-        let answer = execSync(exePath, (error, stdout, stderr) => {
-            if (error) {
-                console.log(`error: ${error.message}`);
-                return;
-            }
-            if (stderr) {
-                console.log(`stderr: ${stderr}`);
-                return;
-            }
-        });
-        var elapsed = new Date() - startTime;
-        answer = answer.toString();
-        if (prow.template) {
-            var templatetokens = prow.template.split(' ');
-            templatetokens.forEach(function (token) {
-                answer = answer.replace(token.trim(), '');
+    const modelrows = db.prepare("select * from model where  model.process = 1 ").all();
+
+    modelrows.forEach(function (modelrow) {
+
+        let promptrows = getUnprocessedPromptRows(modelrow.model_id);
+
+        if (promptrows.length > 0) {
+
+            var promptcount = 0;
+            console.log("Processing prompts for model:" + modelrow.name);
+            let stmt = db.prepare("INSERT INTO modelrun (model_id, args, modelfile) VALUES (?, ?, ?)");
+            var result = stmt.run(modelrow.model_id, modelrow.args, path.basename(modelrow.filepath));
+            let modelrunid = result.lastInsertRowid;
+
+            const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+            bar1.start(promptrows.length, 0);
+
+            promptrows.forEach(function (prow) {
+                bar1.increment();
+                var query = prow.query;
+                if (prow.template) {
+                    query = prow.template.replace("{{{prompt}}}", query);
+                }
+                var llamaargs = ' ' + prow.args;
+                console.log();
+                var startTime = new Date();
+                let modelargs = llamaargs + " -p \"" + query + "\"";
+                let exePath = llamapath + " -m " + process.env.DEVPATH + prow.filepath + modelargs;
+                console.log(exePath);
+                let answer = execSync(exePath, (error, stdout, stderr) => {
+                    if (error) {
+                        console.log(`error: ${error.message}`);
+                        return;
+                    }
+                    if (stderr) {
+                        console.log(`stderr: ${stderr}`);
+                        return;
+                    }
+                });
+                var elapsed = new Date() - startTime;
+                answer = answer.toString();
+                if (prow.template) {
+                    var templatetokens = prow.template.split(' ');
+                    templatetokens.forEach(function (token) {
+                        answer = answer.replace(token.trim(), '');
+                    })
+                }
+                answer = answer.replace(prow.query, '');
+                answer = answer.trim();
+                console.log('-----------------------------------------');
+                console.log(prow.query);
+                console.log('-----------------------------------------');
+                console.log(answer);
+                console.log('-----------------------------------------');
+                let stmt = db.prepare("INSERT INTO model_prompt (model_id, prompt_id, modelrun_id, answer, elapsed) VALUES (?, ?, ?, ?, ?)");
+                stmt.run(prow.modelid, prow.promptid, modelrunid, answer, elapsed);
+
+                //Update modelrun with count
+                promptcount++;
+                let stmt_mr = db.prepare('UPDATE modelrun SET promptcount = ? WHERE modelrun.modelrun_id = ?');
+                stmt_mr.run(promptcount, modelrunid);
+
             })
-        }
-        answer = answer.replace(prow.query, '');
-        answer = answer.trim();
-        console.log('-----------------------------------------');
-        console.log(prow.query);
-        console.log('-----------------------------------------');
-        console.log(answer);
-        console.log('-----------------------------------------');
-        let stmt = db.prepare("INSERT INTO model_prompt (model_id, prompt_id, answer, elapsed) VALUES (?, ?, ?, ?)");
-        stmt.run(prow.modelid, prow.promptid, answer, elapsed);
-    })
 
-    console.clear();
-    bar1.stop();
+            console.clear();
+            bar1.stop();
+        }
+
+    });
+
 }
 
 //Grade ungraded model answers
@@ -187,7 +223,7 @@ function autoGrade() {
             if (model_answer.indexOf(correct_answers[i]) != -1) {
                 correct = 1;
             }
-       }
+        }
 
         var sql = 'UPDATE model_prompt SET correct = ? WHERE model_prompt.model_id = ? and model_prompt.prompt_id = ?';
         let stmt = db.prepare(sql);
@@ -200,11 +236,11 @@ function autoGrade() {
 
 
 //Get list of prompts that do not have prompt answers
-function getPromptRows() {
+function getUnprocessedPromptRows(modelid) {
     let retrows = [];
-    const rows = db.prepare("select model.model_id as modelid, prompt.prompt_id as promptid from model cross join prompt where date(model.date) < date(prompt.airdate) and model.process = 1 except select model_id, prompt_id from model_prompt").all();
+    const rows = db.prepare("select model.model_id as modelid, prompt.prompt_id as promptid from model cross join prompt where date(model.date) < date(prompt.airdate) and modelid = " + modelid + " except select model_id, prompt_id from model_prompt").all();
     rows.forEach(function (row) {
-        const prow = db.prepare("select model.model_id as modelid, prompt.prompt_id as promptid, model.filepath, model.args, model.template, prompt.query, prompt.answer, prompt.airdate from model,prompt where model.model_id = " + row.modelid + " and prompt.prompt_id = " + row.promptid).get();
+        const prow = db.prepare("select model.model_id as modelid, prompt.prompt_id as promptid, model.filepath, model.args, model.template, prompt.query, prompt.answer, prompt.airdate from model,prompt where model.model_id = " + modelid + " and prompt.prompt_id = " + row.promptid).get();
         retrows.push(prow);
     });
     return retrows;

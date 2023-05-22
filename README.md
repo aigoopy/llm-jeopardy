@@ -10,3 +10,4 @@ npm install
 node . --help  
 
 llm-jeopardy framework uses [llama.cpp](https://github.com/ggerganov/llama.cpp) for model execution and GGML models from [Hugging Face](https://huggingface.co). 
+Updated with GGMLv3 models.
