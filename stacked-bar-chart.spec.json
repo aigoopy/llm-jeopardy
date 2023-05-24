@@ -150,7 +150,7 @@
       "from": {"data": "pData"},
       "encode": { 
         "enter": { 
-          "y": {"scale": "y", "field":"model", "offset": 48, "value": 0 },
+          "y": {"scale": "y", "field":"model", "offset": 45, "value": 0 },
           "dy": {"signal": "(datum.y2 - datum.y)/2"},
           "x": {"scale": "x", "value": 0, "offset": 5 },
           "fill": [
