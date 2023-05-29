@@ -2,7 +2,7 @@
   "$schema": "https://vega.github.io/schema/vega/v5.json",
   "width": 500,
   "padding": 5,
-  "height": 1600,
+  "height": 1800,
   "title": {  
     "fontSize": 30, 
     "text": "LLMs vs. Double Jeopardy", 
@@ -75,7 +75,7 @@
       "orient": "left", 
       "scale": "y",
       "title": "GGMLv3 Model", 
-      "labelFontSize": 12,
+      "labelFontSize": 11,
       "labelFontWeight": "bold", 
       "titleFontSize": 18
     }
@@ -93,7 +93,7 @@
             "x2": {"scale": "x", "value": 0},
             "fill": {"data": "pData", "field": "c"},
             "text": { "field": "model" },
-            "fontSize": {"value": 22 },
+            "fontSize": {"value": 12 },
             "stroke": {"value": "#444"}
         }
       }
@@ -150,7 +150,7 @@
       "from": {"data": "pData"},
       "encode": { 
         "enter": { 
-          "y": {"scale": "y", "field":"model", "offset": 40, "value": 0 },
+          "y": {"scale": "y", "field":"model", "offset": 44, "value": 0 },
           "dy": {"signal": "(datum.y2 - datum.y)/2"},
           "x": {"scale": "x", "value": 0, "offset": 5 },
           "fill": [
