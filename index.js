@@ -50,7 +50,7 @@ if (options.createchart) {
             "percent": row.model_pct ? row.model_pct.toFixed(2) : 0,
             "elapsed": ((row.elapsed_avg) / 1000).toFixed(3),
             "modeltotal": row.model_total,
-            "msize": parseFloat(row.model_size).toLocaleString('en'),
+            "msize": parseFloat(row.model_size / 1000 / 1000 / 1000).toFixed(2),
             "mdate": row.model_date,
             "c": '#' + row.model_color,
             "tc": '#' + row.model_textcolor

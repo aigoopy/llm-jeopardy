@@ -29,13 +29,8 @@
         },
         { 
           "type":"formula", 
-          "expr":"parseInt(datum.msize) > 0 ? 'size: ' + datum.msize + '' : ''", 
-          "as": "fmtsize"
-        },
-        { 
-          "type":"formula", 
-          "expr":"'date: ' + datum.mdate + ''", 
-          "as": "fmtdate"
+          "expr":"parseInt(datum.msize) > 0 ? 'size (date): ' + datum.msize + ' GB (' + datum.mdate + ')' : ''", 
+          "as": "fmtsizedate"
         },
         { 
           "type":"formula", 
@@ -150,17 +145,17 @@
       "from": {"data": "pData"},
       "encode": { 
         "enter": { 
-          "y": {"scale": "y", "field":"model", "offset": 44, "value": 0 },
+          "y": {"scale": "y", "field": "model", "band": 1.00},
           "dy": {"signal": "(datum.y2 - datum.y)/2"},
           "x": {"scale": "x", "value": 0, "offset": 5 },
           "fill": [
             {"data": "pData", "field": "tc"}
           ],
           "fontWeight": {"value": "bold"},
-          "fontSize": {"value": 9 },
+          "fontSize": {"value": 10 },
           "align": {"value": "left"},
           "baseline": {"value": "bottom"},
-          "text": { "field": "fmtsize" }
+          "text": { "field": "fmtsizedate" }
         }     
       }
     }, 
@@ -169,26 +164,7 @@
       "from": {"data": "pData"},
       "encode": { 
         "enter": { 
-          "y": {"scale": "y", "field": "model", "band": 1.01},
-          "dy": {"signal": "(datum.y2 - datum.y)/2"},
-          "x": {"scale": "x", "value": 0, "offset": 5 },
-          "fill": [
-            {"data": "pData", "field": "tc"}
-          ],
-          "fontWeight": {"value": "bold"},
-          "fontSize": {"value": 9 },
-          "align": {"value": "left"},
-          "baseline": {"value": "bottom"},
-          "text": { "field": "fmtdate" }
-        }     
-      }
-    }, 
-    {  
-      "type": "text",
-      "from": {"data": "pData"},
-      "encode": { 
-        "enter": { 
-          "y": { "scale": "y", "field": "model", "offset": 13},
+          "y": { "scale": "y", "field": "model", "offset": 11},
           "dy": {"signal": "(datum.y2 - datum.y)/2"},
           "x": {"scale": "x", "value": 0, "offset": 5 },
           "fill": [
