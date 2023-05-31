@@ -1,0 +1,71 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "width": 900,
+  "padding": 2,
+  "height": 50,
+  "title": {  
+    "fontSize": 8, 
+    "text": {
+      "signal": "' ' + 'Modelname' "}
+  },
+ "data": [
+    {
+      "name": "pData"
+    }   
+  ],
+
+  "scales": [
+    {
+      "name": "x",
+      "type": "point",
+      "range": "width",
+      "domain": {"data": "pData", "field": "airdate"}
+    },
+    {
+      "name": "y",
+      "type": "linear",
+      "range": "height",
+      "nice": true,
+      "zero": true,
+      "domain": {"data": "pData", "field": "avgcorrect"}
+    },
+    {
+      "name": "color",
+      "type": "bin-ordinal",
+      "range": "category",
+      "domain": {"data": "pData", "field": "c"}
+    }
+  ],
+
+  "axes": [
+    {"orient": "bottom", "scale": "x", "labelFontSize": 6, "grid": true},
+    {"orient": "left", "scale": "y", "labelFontSize": 6, "grid": true}
+  ],
+
+  "marks": [
+    {
+      "type": "group",
+      "from": {
+        "facet": {
+          "name": "series",
+          "data": "pData",
+          "groupby": "modelname"
+        }
+      },
+      "marks": [
+        {
+          "type": "line",
+          "from": {"data": "series"},
+          "encode": {
+            "enter": {
+              "x": {"scale": "x", "timeUnit": "date", "type": "temporal", "field": "airdate"},
+              "y": {"scale": "y", "type":"value", "field": "avgcorrect"},
+              "stroke": {"scale": "color", "field": "c"},
+              "strokeWidth": {"value": 2}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -8,6 +8,7 @@ var vega = require('vega')
 var sharp = require('sharp');
 var path = require('path');
 var stackedBarChartSpec = require('./stacked-bar-chart.spec.json');
+var dailyLineChartSpec = require('./daily-line-chart.spec.json');
 
 const llamapath = process.env.DEVPATH + "/repos/llama.cpp/main";
 
@@ -15,6 +16,7 @@ const options = yargs
     .usage("Usage: <command> [args]")
     .option("a", { alias: "addprompt", describe: "add a prompt to db and process", type: "boolean", demandOption: false })
     .option("c", { alias: "createchart", describe: "create a chart from the data", type: "boolean", demandOption: false })
+    .option("d", { alias: "createdailychart", describe: "create a daily line chart from the data", type: "boolean", demandOption: false })
     .option("r", { alias: "run", describe: "run model inference", type: "boolean", demandOption: false })
     .option("g", { alias: "grade", describe: "grade model answers", type: "boolean", demandOption: false })
     .argv;
@@ -38,11 +40,11 @@ if (options.createchart) {
     sql += 'group by model.name, model.color, model.textcolor, model.size, model.modeldate ';
     sql += 'order by model_avg DESC, elapsed_avg ';
     var pData = [];
-    const rows = db.prepare(sql).all();
-    const datesArray = rows.map(dt => new Date(dt.prompt_maxdate));
-    var maxdate = new Date(Math.max(...datesArray)).toISOString().split('T')[0];
+    const barRows = db.prepare(sql).all();
+    const barDatesArray = barRows.map(dt => new Date(dt.prompt_maxdate));
+    var maxdate = new Date(Math.max(...barDatesArray)).toISOString().split('T')[0];
 
-    rows.forEach(function (row) {
+    barRows.forEach(function (row) {
         pData.push({
             "model": row.model_name,
             "maxairdate": maxdate,
@@ -88,6 +90,75 @@ if (options.createchart) {
             console.error(err)
         });
 }
+
+if (options.createdailychart) {
+
+        //Daily Line chart
+        sql = '';
+        sql += 'select ';
+        sql += 'prompt.airdate as prompt_airdate, model.name as model_name, model.color as model_color, date(model.modeldate) as model_date, avg(correct) as model_pct, avg(elapsed)/1000 as seconds_elapsed from model ';
+        sql += 'inner join model_prompt on (model_prompt.model_id = model.model_id) ';
+        sql += 'inner join prompt on (model_prompt.prompt_id = prompt.prompt_id) ';
+        sql += 'group by prompt.airdate, model.name, model.color, date(model.modeldate) ';
+        sql += 'order by prompt.airdate, avg(correct) desc, avg(elapsed);';
+        var pData = [];
+        const lineRows = db.prepare(sql).all();
+    
+        lineRows.forEach(function (row) {
+            var dp = new Date(row.prompt_airdate);
+            var dm = new Date(row.model_date)
+
+            pData.push({
+                "modelname": row.model_name,
+                "modeldate": row.model_date,
+                "airdate": row.prompt_airdate,
+                "avgcorrect": row.model_pct ? row.model_pct.toFixed(2) : 0,
+                "elapsed": row.seconds_elapsed.toFixed(3),
+                "c": '#' + (dp < dm ? 'FF0000' : row.model_color)
+            })
+        });
+    
+        var models = groupBy(pData, 'modelname');
+        var keys = Object.keys(models);
+        for (var i = 0, length = keys.length; i < length; i++) {
+           //console.log(models[keys[i]]);
+        };
+    
+        //Create a new view instance for a given Vega JSON spec
+        var view = new vega
+            .View(vega.parse(dailyLineChartSpec))
+            .renderer('none')
+            .initialize()
+            .insert("pData", models[keys[0]]);
+    
+        //Generate static PNG file from chart
+        view.toSVG()
+            .then(async function (svg) {
+    
+                await sharp(Buffer.from(svg))
+                    .flatten({ background: { r: 255, g: 255, b: 255, alpha: 0 } })
+                    .toFormat('png')
+                    .toFile('dbljeopardy_dailyavg.png');
+            })
+            .catch(function (err) {
+                console.log("Error writing PNG to file:")
+                console.error(err)
+            });
+        //  console.log(pData);
+}
+
+
+function groupBy(objectArray, property) {
+    return objectArray.reduce(function (acc, obj) {
+        var key = obj[property];
+        if (!acc[key]) {
+            acc[key] = [];
+        }
+        acc[key].push(obj);
+        return acc;
+    }, {});
+}
+
 
 //Add new prompt to the db
 if (options.addprompt) {
