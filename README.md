@@ -15,11 +15,13 @@ Updated with GGMLv3 models.
 <!--- TABLESTART --->
 |name|percent|modelcorrect|modeltotal|elapsed|msize|mdate|
 |----|----|----|----|----|----|----|
+|<a href="https://huggingface.co/TheBloke/WizardLM-30B-GGML" target="_blank">WizardLM 30B-8_0</a>|77.86|102|131|46.208|34.56|2023/06/06 21:08:15|
 |<a href="https://huggingface.co/TheBloke/Wizard-Vicuna-30B-Uncensored-GGML" target="_blank">Wizard-Vicuna-Uncensored 30B-8_0</a>|76.34|100|131|35.361|34.56|2023/05/30 04:33:26|
 |<a href="https://huggingface.co/TheBloke/guanaco-65B-GGML" target="_blank">Guanaco 65B-8_0</a>|75.57|99|131|88.005|69.37|2023/05/26 08:46:34|
 |<a href="https://huggingface.co/TheBloke/alpaca-lora-65B-GGML" target="_blank">Alpaca-Lora 65B-5_1</a>|74.81|98|131|39.639|48.97|2023/05/20 12:57:30|
 |<a href="https://huggingface.co/TheBloke/hippogriff-30b-chat-GGML" target="_blank">Hippogriff 30B-8_0</a>|74.81|98|131|43.931|34.56|2023/05/31 09:16:01|
 |<a href="https://huggingface.co/TheBloke/VicUnlocked-alpaca-65B-QLoRA-GGML" target="_blank">VicUnlocked-Alpaca 65B-8_0</a>|74.81|98|131|91.265|69.37|2023/05/30 00:09:02|
+|<a href="https://huggingface.co/TheBloke/WizardLM-30B-GGML" target="_blank">WizardLM 30B-6_K</a>|74.05|97|131|40.326|26.69|2023/06/06 19:03:43|
 |<a href="https://huggingface.co/TheBloke/WizardLM-Uncensored-SuperCOT-StoryTelling-30B-GGML" target="_blank">WizardLM-Unc-Supercot 30B-8_0</a>|74.05|97|131|41.361|34.56|2023/06/01 11:07:15|
 |<a href="https://huggingface.co/TheBloke/llama-30b-supercot-GGML" target="_blank">Llama-Supercot 30B-8_0</a>|73.28|96|131|31.106|34.56|2023/05/28 12:22:12|
 |<a href="https://huggingface.co/TheBloke/samantha-33B-GGML" target="_blank">Samantha 33B-8_0</a>|73.28|96|131|44.476|34.56|2023/05/29 10:18:08|
