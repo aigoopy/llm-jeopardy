@@ -1,63 +1,38 @@
-require('dotenv').config();
-const cliProgress = require('cli-progress');
-const yargs = require("yargs");
-const db = require('better-sqlite3')('./dbljeopardy.sqlite');
-const prompt = require("prompt-sync")({ sigint: true });
-const { execSync } = require("child_process");
-var vega = require('vega')
-var sharp = require('sharp');
-var path = require('path');
-var stackedBarChartSpec = require('./stacked-bar-chart.spec.json');
-var dailyLineChartSpec = require('./daily-line-chart.spec.json');
+import dotenv from 'dotenv';
+import cliProgress from 'cli-progress';
+import Database from 'better-sqlite3';
+import prompt from 'prompt-sync';
+import { readFileSync, writeFileSync } from 'fs';
+import { execSync } from 'child_process';
+import mdtable from 'json-to-markdown-table';
+import vega from 'vega';
+import sharp from 'sharp';
+import path from 'path';
+import _yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+const yargs = _yargs(hideBin(process.argv));
+
+dotenv.config();
+const db = new Database('./dbljeopardy.sqlite');
+prompt.sigint = true;
 
 const llamapath = process.env.DEVPATH + "/repos/llama.cpp/main";
 
-const options = yargs
-    .usage("Usage: <command> [args]")
+const argv = yargs
     .option("a", { alias: "addprompt", describe: "add a prompt to db and process", type: "boolean", demandOption: false })
     .option("c", { alias: "createchart", describe: "create a chart from the data", type: "boolean", demandOption: false })
     .option("d", { alias: "createdailychart", describe: "create a daily line chart from the data", type: "boolean", demandOption: false })
     .option("r", { alias: "run", describe: "run model inference", type: "boolean", demandOption: false })
-    .option("g", { alias: "grade", describe: "grade model answers", type: "boolean", demandOption: false })
+    .option("t", { alias: "createtable", describe: "create markdown table", type: "boolean", demandOption: false })
+    .option("g", { alias: "grade", describe: "grade model answers", type: "boolean", demandOption: false })    
     .argv;
 
-//Create chart
-if (options.createchart) {
-    //Get current data and populate chart spec
-    var sql = '';
-    sql += 'select ';
-    sql += 'model.name as model_name, model.color as model_color, model.textcolor as model_textcolor, model.size as model_size, model.modeldate as model_date, ';
-    sql += 'SUM(model_prompt.correct) as model_sum, ';
-    sql += 'MAX(DATE(prompt.airdate)) as prompt_maxdate, ';
-    sql += 'AVG(model_prompt.correct) as model_avg, ';
-    sql += 'AVG(model_prompt.elapsed) as elapsed_avg, ';
-    sql += 'AVG(model_prompt.correct) * 100 as model_pct, ';
-    sql += 'COUNT(model_prompt.correct) as model_total ';
-    sql += 'from model ';
-    sql += 'inner join model_prompt on (model.model_id = model_prompt.model_id) ';
-    sql += 'inner join prompt on (prompt.prompt_id = model_prompt.prompt_id) ';
-    sql += 'where graphdisplay = 1 ';
-    sql += 'group by model.name, model.color, model.textcolor, model.size, model.modeldate ';
-    sql += 'order by model_avg DESC, elapsed_avg ';
-    var pData = [];
-    const barRows = db.prepare(sql).all();
-    const barDatesArray = barRows.map(dt => new Date(dt.prompt_maxdate));
-    var maxdate = new Date(Math.max(...barDatesArray)).toISOString().split('T')[0];
 
-    barRows.forEach(function (row) {
-        pData.push({
-            "model": row.model_name,
-            "maxairdate": maxdate,
-            "modelcorrect": row.model_sum,
-            "percent": row.model_pct ? row.model_pct.toFixed(2) : 0,
-            "elapsed": ((row.elapsed_avg) / 1000).toFixed(3),
-            "modeltotal": row.model_total,
-            "msize": parseFloat(row.model_size / 1000 / 1000 / 1000).toFixed(2),
-            "mdate": row.model_date,
-            "c": '#' + row.model_color,
-            "tc": '#' + row.model_textcolor
-        })
-    });
+//Create chart
+if (argv.createchart) {
+    var pData = getBarChartData();
+
+    let stackedBarChartSpec = JSON.parse(readFileSync("./stacked-bar-chart.spec.json", "utf8"));
 
     //Create a new view instance for a given Vega JSON spec
     var view = new vega
@@ -91,8 +66,30 @@ if (options.createchart) {
         });
 }
 
-if (options.createdailychart) {
+//Create table
+if (argv.createtable) {
+    var pData = getBarChartData();
+    var pCols = [ 'name','percent', 'modelcorrect', 'modeltotal', 'elapsed', 'msize', 'mdate' ];
+    pData.forEach(function(row) {
+        row.name = '<a href="' + row.msource + '" target="_blank">' + row.model + '</a>';
+        row.mdate = (new Date(row.mdate)).toISOString().slice(0, 19).replace(/-/g, "/").replace("T", " ");
+    });
+    var tabledata = mdtable(pData, pCols);
 
+    //Write to README
+    var delim = '<!--- TABLESTART --->';
+    var data = readFileSync('./README.md', 'utf8');
+        data = data.substring(0, data.indexOf(delim) + delim.length);
+        data += "\r\n";
+        data += tabledata;
+    writeFileSync('./README.md', data, 'utf8');
+}
+
+//NOT IMPLEMENTED
+if (argv.createdailychart) {
+        console.log("Not Implemented");
+
+        /*
         //Daily Line chart
         sql = '';
         sql += 'select ';
@@ -145,23 +142,11 @@ if (options.createdailychart) {
                 console.error(err)
             });
         //  console.log(pData);
+        */
 }
-
-
-function groupBy(objectArray, property) {
-    return objectArray.reduce(function (acc, obj) {
-        var key = obj[property];
-        if (!acc[key]) {
-            acc[key] = [];
-        }
-        acc[key].push(obj);
-        return acc;
-    }, {});
-}
-
 
 //Add new prompt to the db
-if (options.addprompt) {
+if (argv.addprompt) {
     const airdate = prompt("Airdate (YYYY-MM-DD): ");
     const modelprompt = prompt("Model prompt: ");
     const answer = prompt("Answer: ");
@@ -172,7 +157,7 @@ if (options.addprompt) {
 }
 
 //Run inference on promptrows and save result
-if (options.run) {
+if (argv.run) {
 
     const modelrows = db.prepare("select * from model where  model.process = 1 ").all();
 
@@ -246,8 +231,61 @@ if (options.run) {
 
 }
 
+function getBarChartData() {
+    //Get current data and populate chart spec
+    var sql = '';
+    sql += 'select ';
+    sql += 'model.name as model_name, model.color as model_color, model.textcolor as model_textcolor, model.size as model_size, model.modeldate as model_date, model.sourceurl as model_source, ';
+    sql += 'SUM(model_prompt.correct) as model_sum, ';
+    sql += 'MAX(DATE(prompt.airdate)) as prompt_maxdate, ';
+    sql += 'AVG(model_prompt.correct) as model_avg, ';
+    sql += 'AVG(model_prompt.elapsed) as elapsed_avg, ';
+    sql += 'AVG(model_prompt.correct) * 100 as model_pct, ';
+    sql += 'COUNT(model_prompt.correct) as model_total ';
+    sql += 'from model ';
+    sql += 'inner join model_prompt on (model.model_id = model_prompt.model_id) ';
+    sql += 'inner join prompt on (prompt.prompt_id = model_prompt.prompt_id) ';
+    sql += 'where graphdisplay = 1 ';
+    sql += 'group by model.name, model.color, model.textcolor, model.size, model.modeldate, model.sourceurl ';
+    sql += 'order by model_avg DESC, elapsed_avg ';
+    var pData = [];
+    const barRows = db.prepare(sql).all();
+    const barDatesArray = barRows.map(dt => new Date(dt.prompt_maxdate));
+    var maxdate = new Date(Math.max(...barDatesArray)).toISOString().split('T')[0];
+
+    barRows.forEach(function (row) {
+        pData.push({
+            "model": row.model_name,
+            "maxairdate": maxdate,
+            "modelcorrect": row.model_sum,
+            "percent": row.model_pct ? row.model_pct.toFixed(2) : 0,
+            "elapsed": ((row.elapsed_avg) / 1000).toFixed(3),
+            "modeltotal": row.model_total,
+            "msize": parseFloat(row.model_size / 1000 / 1000 / 1000).toFixed(2),
+            "mdate": row.model_date,
+            "msource": row.model_source,
+            "c": '#' + row.model_color,
+            "tc": '#' + row.model_textcolor
+        })
+    });
+
+    return pData;
+}
+
+
+function groupBy(objectArray, property) {
+    return objectArray.reduce(function (acc, obj) {
+        var key = obj[property];
+        if (!acc[key]) {
+            acc[key] = [];
+        }
+        acc[key].push(obj);
+        return acc;
+    }, {});
+}
+
 //Grade ungraded model answers
-if (options.grade) {
+if (argv.grade) {
     autoGrade();
 }
 
