@@ -38,7 +38,9 @@ Updated with GGMLv3 models.
 |<a href="https://huggingface.co/TheBloke/gpt4-alpaca-lora_mlp-65B-GGML" target="_blank">GPT4-Alpaca-Lora-mlp 65B-5_1</a>|67.11|100|149|68.056|154.97|48.97|2023/05/20 17:04:49|
 |<a href="https://huggingface.co/TheBloke/wizard-mega-13B-GGML" target="_blank">Wlzard-Mega 13B-8_0</a>|66.44|99|149|19.660|174.83|13.83|2023/05/20 03:50:25|
 |<a href="https://huggingface.co/TheBloke/minotaur-13B-GGML" target="_blank">Minotaur 13B-8_0</a>|66.44|99|149|20.109|190.10|13.83|2023/06/08 21:45:25|
+|<a href="https://huggingface.co/TheBloke/tulu-30B-GGML" target="_blank">Tulu 30B-8_0</a>|65.77|98|149|16.549|21.57|34.56|2023/06/10 21:47:05|
 |<a href="https://huggingface.co/TheBloke/13B-HyperMantis-GGML" target="_blank">Hypermantis 13B-8_0</a>|65.10|97|149|11.655|97.49|13.83|2023/06/03 00:38:54|
+|<a href="https://huggingface.co/TheBloke/airoboros-13B-1.1-GGML" target="_blank">Airoboros-1.1 13B-8_0</a>|64.43|96|149|13.155|73.52|13.83|2023/06/10 16:09:53|
 |<a href="https://huggingface.co/TheBloke/guanaco-7B-GGML" target="_blank">Guanaco 7B-8_0</a>|64.43|96|149|34.672|694.58|7.16|2023/05/25 20:18:25|
 |<a href="https://huggingface.co/TheBloke/wizard-vicuna-13B-GGML" target="_blank">Wizard-Vicuna 13B-8_0</a>|63.76|95|149|12.292|89.86|13.83|2023/05/20 02:44:04|
 |<a href="https://huggingface.co/TheBloke/13B-Chimera-GGML" target="_blank">Chimera 13B-8_0</a>|63.76|95|149|13.296|119.06|13.83|2023/06/03 13:08:37|
