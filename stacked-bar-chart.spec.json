@@ -98,7 +98,7 @@
       "from": {"data": "pData"},
       "encode": { 
         "enter": { 
-          "y": {"scale": "y", "field": "model", "band": 0.5},
+          "y": {"scale": "y", "field": "model", "band": 0.55},
           "dy": {"signal": "(datum.y2 - datum.y)/2"},
           "dx": {"signal": "((datum.x2 - datum.x)/2)"},
           "x": {
