@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import cliProgress from 'cli-progress';
 import Database from 'better-sqlite3';
 import prompt from 'prompt-sync';
+import fs from 'fs';
 import { readFileSync, writeFileSync } from 'fs';
 import { execSync } from 'child_process';
 import mdtable from 'json-to-markdown-table';
@@ -23,6 +24,7 @@ const argv = yargs
     .option("c", { alias: "createchart", describe: "create a chart from the data", type: "boolean", demandOption: false })
     .option("d", { alias: "createdailychart", describe: "create a daily line chart from the data", type: "boolean", demandOption: false })
     .option("r", { alias: "run", describe: "run model inference", type: "boolean", demandOption: false })
+    .option("e", { alias: "extramodels", describe: "list models not used", type: "boolean", demandOption: false })
     .option("t", { alias: "createtable", describe: "create markdown table", type: "boolean", demandOption: false })
     .option("g", { alias: "grade", describe: "grade model answers", type: "boolean", demandOption: false })
     .argv;
@@ -83,6 +85,20 @@ if (argv.createtable) {
     data += "\r\n";
     data += tabledata;
     writeFileSync('./README.md', data, 'utf8');
+}
+
+//List extra models not used
+if (argv.extramodels) {
+    var modelspath = process.env.DEVPATH + '/models/ggml/';
+    var sql = '';
+    sql += 'select model.filepath from model where process=1 or graphdisplay=1;';
+    var modelfiles = db.prepare(sql).all().map(x => path.basename(x.filepath));
+    const files = findFilesInDir(modelspath, '.bin');
+    files.forEach(function(file) {
+        if (!modelfiles.includes(path.basename(file))) {
+            console.log(file);
+        }
+    });
 }
 
 //NOT IMPLEMENTED
@@ -284,6 +300,36 @@ function groupBy(objectArray, property) {
         acc[key].push(obj);
         return acc;
     }, {});
+}
+
+/**
+ * Find all files recursively in specific folder with specific extension, e.g:
+ * findFilesInDir('./project/src', '.html') ==> ['./project/src/a.html','./project/src/build/index.html']
+ * @param  {String} startPath    Path relative to this file or other file which requires this files
+ * @param  {String} filter       Extension name, e.g: '.html'
+ * @return {Array}               Result files with path string in an array
+ */
+function findFilesInDir(startPath,filter){
+
+    var results = [];
+
+    if (!fs.existsSync(startPath)){
+        console.log("no dir ",startPath);
+        return;
+    }
+
+    var files=fs.readdirSync(startPath);
+    for(var i=0;i<files.length;i++){
+        var filename=path.join(startPath,files[i]);
+        var stat = fs.lstatSync(filename);
+        if (stat.isDirectory()){
+            results = results.concat(findFilesInDir(filename,filter)); //recurse
+        }
+        else if (filename.indexOf(filter)>=0) {
+            results.push(filename);
+        }
+    }
+    return results;
 }
 
 //Grade ungraded model answers
