@@ -48,8 +48,8 @@ Updated with GGMLv3 models.
 |<a href="https://huggingface.co/TheBloke/13B-HyperMantis-GGML" target="_blank">Hypermantis 13B-8_0</a>|65.07|136|209|14.183|98.56|13.83|2023/06/03 00:38:54|
 |<a href="https://huggingface.co/TheBloke/gpt4-x-vicuna-13B-GGML" target="_blank">Gpt4-X-Vicuna 13B-8_0</a>|65.07|136|209|21.200|186.14|13.83|2023/05/20 05:02:06|
 |<a href="https://huggingface.co/TheBloke/based-30B-GGML" target="_blank">Based 30B-8_0</a>|65.07|136|209|21.256|34.34|34.56|2023/06/03 10:54:07|
+|<a href="https://huggingface.co/TheBloke/vicuna-13b-v1.3.0-GGML" target="_blank">Vicuna-1.3.0 13B-8_0</a>|64.59|135|209|38.785|312.64|13.83|2023/06/25 11:15:58|
 |<a href="https://huggingface.co/TheBloke/LLaMa-30B-GGML" target="_blank">Llama 30B-8_0</a>|64.59|135|209|51.314|167.80|34.56|2023/05/20 19:50:17|
-|<a href="https://huggingface.co/TheBloke/vicuna-13b-v1.3-GGML" target="_blank">Vicuna-1.3 13B-8_0</a>|64.11|134|209|33.831|312.45|13.83|2023/06/18 18:11:39|
 |<a href="https://huggingface.co/TheBloke/airoboros-7B-gpt4-1.4-GGML" target="_blank">Airoboros-Gpt4-1.4 7B-8_0</a>|63.64|133|209|7.427|23.23|7.16|2023/06/22 07:53:28|
 |<a href="https://huggingface.co/TheBloke/Manticore-13B-GGML" target="_blank">Manticore 13B-8_0</a>|63.64|133|209|17.403|132.31|13.83|2023/05/20 14:17:21|
 |<a href="https://huggingface.co/TheBloke/13B-Chimera-GGML" target="_blank">Chimera 13B-8_0</a>|63.16|132|209|15.874|121.94|13.83|2023/06/03 13:08:37|
