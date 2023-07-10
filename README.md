@@ -65,6 +65,7 @@ Updated with GGMLv3 models.
 |<a href="https://huggingface.co/TheBloke/airoboros-7B-gpt4-1.2-GGML" target="_blank">Airoboros-Gpt4-1.2 7B-8_0</a>|60.67|162|267|6.882|16.69|7.16|2023/06/16 12:45:31|
 |<a href="https://huggingface.co/TheBloke/wizard-vicuna-13B-GGML" target="_blank">Wizard-Vicuna 13B-8_0</a>|60.67|162|267|15.340|100.12|13.83|2023/05/20 02:44:04|
 |<a href="https://huggingface.co/TheBloke/Vigogne-Instruct-13B-GGML" target="_blank">Vigogne-Instruct 13B-8_0</a>|59.93|160|267|19.430|128.52|13.83|2023/05/25 21:58:38|
+|<a href="https://huggingface.co/TheBloke/GodziLLa-30B-GGML" target="_blank">Godzilla 30B-8_0</a>|59.93|160|267|44.187|222.78|34.56|2023/07/09 12:43:22|
 |<a href="https://huggingface.co/TheBloke/WizardLM-7B-V1.0-Uncensored-GGML" target="_blank">WizardLM-Unc-1.0 7B-8_0</a>|58.80|157|267|18.843|275.48|7.16|2023/06/18 12:59:11|
 |<a href="https://huggingface.co/TheBloke/Project-Baize-v2-7B-GGML" target="_blank">Baize-v2 7B-8_0</a>|56.18|150|267|13.400|181.61|7.16|2023/05/24 11:38:45|
 |<a href="https://huggingface.co/TheBloke/Wizard-Vicuna-7B-Uncensored-GGML" target="_blank">Wizard-Vicuna-Unc 7B-8_0</a>|55.43|148|267|8.510|82.15|7.16|2023/05/20 01:07:29|
