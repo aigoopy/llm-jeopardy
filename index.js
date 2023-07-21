@@ -199,10 +199,9 @@ if (argv.run) {
                     query = prow.template.replace("{{{prompt}}}", query);
                 }
                 var llamaargs = ' ' + prow.args;
-                console.log();
                 var startTime = new Date();
                 let modelargs = llamaargs + " -p \"" + query + "\"";
-                let exePath = llamapath + " -m " + process.env.DEVPATH + prow.filepath + modelargs;
+                let exePath = llamapath + " -m " + process.env[prow.envroot] + prow.filepath + modelargs;
                 console.log(exePath);
                 let answer = execSync(exePath, (error, stdout, stderr) => {
                     if (error) {
@@ -398,7 +397,7 @@ function getUnprocessedPromptRows(modelid) {
     let retrows = [];
     const rows = db.prepare("select model.model_id as modelid, prompt.prompt_id as promptid from model cross join prompt where date(model.date) <= date(prompt.airdate) and modelid = " + modelid + " except select model_id, prompt_id from model_prompt").all();
     rows.forEach(function (row) {
-        const prow = db.prepare("select model.model_id as modelid, prompt.prompt_id as promptid, model.filepath, model.args, model.template, prompt.query, prompt.answer, prompt.airdate from model,prompt where model.model_id = " + modelid + " and prompt.prompt_id = " + row.promptid).get();
+        const prow = db.prepare("select model.model_id as modelid, prompt.prompt_id as promptid, model.envroot, model.filepath, model.args, model.template, prompt.query, prompt.answer, prompt.airdate from model,prompt where model.model_id = " + modelid + " and prompt.prompt_id = " + row.promptid).get();
         retrows.push(prow);
     });
     return retrows;
