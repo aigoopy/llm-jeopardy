@@ -70,7 +70,7 @@
       "orient": "left", 
       "scale": "y",
       "title": "GGMLv3 Model", 
-      "labelFontSize": 11,
+      "labelFontSize": 9,
       "labelFontWeight": "bold", 
       "titleFontSize": 18
     }
@@ -88,7 +88,7 @@
             "x2": {"scale": "x", "value": 0},
             "fill": {"data": "pData", "field": "c"},
             "text": { "field": "model" },
-            "fontSize": {"value": 12 },
+            "fontSize": {"value": 11 },
             "stroke": {"value": "#444"}
         }
       }
