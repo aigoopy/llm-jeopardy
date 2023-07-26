@@ -2,7 +2,7 @@
   "$schema": "https://vega.github.io/schema/vega/v5.json",
   "width": 500,
   "padding": 5,
-  "height": 3000,
+  "height": 3200,
   "title": {  
     "fontSize": 30, 
     "text": "LLMs vs. Double Jeopardy", 
