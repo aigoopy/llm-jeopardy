@@ -23,6 +23,7 @@ Updated with GGMLv3 models.
 <!--- TABLESTART --->
 |name|percent|modelcorrect|modeltotal|elapsed|answerlen|msize|mdate|
 |----|----|----|----|----|----|----|----|
+|<a href="https://huggingface.co/TheBloke/StableBeluga2-GGML" target="_blank">StableBeluga-2 70B-8_0</a>|84.87|303|357|61.894|50.13|73.23|2023/07/27 23:37:53|
 |<a href="https://huggingface.co/TheBloke/airoboros-l2-70B-gpt4-1.4.1-GGML" target="_blank">Airoboros-Gpt4-l2-1.4.1 70B-8_0</a>|84.59|302|357|51.987|21.11|73.23|2023/07/28 07:52:12|
 |<a href="https://huggingface.co/TheBloke/airoboros-65B-gpt4-1.2-GGML" target="_blank">Airoboros-Gpt4-1.2 65B-8_0</a>|82.07|293|357|40.233|12.80|69.37|2023/06/14 16:35:46|
 |<a href="https://huggingface.co/TheBloke/airoboros-65B-gpt4-1.2-GGML" target="_blank">Airoboros-Gpt4-1.2 65B-5_1</a>|80.67|288|357|37.950|12.92|48.97|2023/06/14 15:25:37|
